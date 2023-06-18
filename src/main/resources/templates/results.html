@@ -19,9 +19,7 @@
       <th>Title</th>
       <th>Author</th>
       <th>Publisher</th>
-      <th>Description</th>
-      <th>Price</th>
-      <th>Length</th>
+      <th class="description-column">Description</th>
       <th class="text-center thumbnail-column">Thumbnail</th>
     </tr>
     </thead>
@@ -31,8 +29,6 @@
       <td th:text="${book.creators}"></td>
       <td th:text="${book.publisher}"></td>
       <td th:text="${book.description}"></td>
-      <td th:text="${book.price}"></td>
-      <td th:text="${book.length}"></td>
       <td class="text-center thumbnail-column">
         <img th:src="@{'https://covers.openlibrary.org/b/isbn/' + ${book.eanIsbn13} + '-M.jpg'}"
              alt="Thumbnail" width="200px">

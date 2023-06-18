@@ -2,28 +2,65 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <title>Client Orders</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      width: 80%;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+  </style>
 </head>
 <body>
 <div class="container">
-  <h1 class="text-center">Client Orders</h1>
+  <h1>Client Orders</h1>
 
   <h2>Client Information</h2>
-  <table class="table">
+  <p>First Name: <span th:text="${client.firstName}"></span></p>
+  <p>Last Name: <span th:text="${client.lastName}"></span></p>
+
+  <h2>Orders</h2>
+  <table>
     <thead>
     <tr>
       <th>Order ID</th>
-      <th>Client ID</th>
       <th>Order Date</th>
-      <th>Total Amount</th>
+      <!-- Add more columns as needed -->
     </tr>
     </thead>
     <tbody>
-    <tr th:each="order : ${clientOrders}">
+    <tr th:each="order : ${orders}">
       <td th:text="${order.orderId}"></td>
-      <td th:text="${order.clientId}"></td>
       <td th:text="${order.orderDate}"></td>
-      <td th:text="${order.totalAmount}"></td>
+      <!-- Add more columns as needed -->
     </tr>
     </tbody>
   </table>
