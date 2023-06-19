@@ -1,49 +1,66 @@
 package com.example.a10spring_boot_hibernate_library.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.Collection;
 
 @Entity
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "orderId")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "orderId")
 public class ClientOrder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(name = "orderId", nullable = false)
     private int orderId;
-    @Basic
+    /*@Basic
     @Column(name = "clientId", nullable = true)
-    private Integer clientId;
+    private Integer clientId;*/
     @Basic
     @Column(name = "orderDate", nullable = true)
     private Date orderDate;
     @Basic
-    @Column(name = "totalAmount", nullable = true, precision = 2)
-    private BigDecimal totalAmount;
-    @ManyToOne
-    @JoinColumn(name = "clientId", referencedColumnName = "clientId", insertable = false, updatable = false)
+    @Column(name = "totalAmount", nullable = true)
+    private double totalAmount;
+    @ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE,
+            CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinColumn(name = "clientId"/*, referencedColumnName = "clientId", insertable = false, updatable = false*/)
+    @JsonIgnore
     private Client clientByClientId;
-    @OneToMany(mappedBy = "clientOrderByOrderId")
+    @OneToMany(mappedBy = "clientOrderByOrderId",
+            fetch = FetchType.EAGER,//va chercher directement les orderitems
+            cascade = {CascadeType.DETACH, CascadeType.MERGE,
+                    CascadeType.PERSIST, CascadeType.REFRESH})
     private Collection<OrderItem> orderItemsByOrderId;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name="paymentId")//colonne de jointure (clé étrangère)
+    private Payment payment;
+
+    public ClientOrder() {
+    }
+
+    public ClientOrder(Date orderDate) {
+        this.orderDate = orderDate;
+    }
+
+    public Payment getPayment() {
+        return payment;
+    }
+
+    public void setPayment(Payment payment) {
+        this.payment = payment;
+    }
     public int getOrderId() {
         return orderId;
     }
 
     public void setOrderId(int orderId) {
         this.orderId = orderId;
-    }
-
-    public Integer getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(Integer clientId) {
-        this.clientId = clientId;
     }
 
     public Date getOrderDate() {
@@ -54,36 +71,12 @@ public class ClientOrder {
         this.orderDate = orderDate;
     }
 
-    public BigDecimal getTotalAmount() {
+    public double getTotalAmount() {
         return totalAmount;
     }
 
-    public void setTotalAmount(BigDecimal totalAmount) {
+    public void setTotalAmount(double totalAmount) {
         this.totalAmount = totalAmount;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ClientOrder that = (ClientOrder) o;
-
-        if (orderId != that.orderId) return false;
-        if (clientId != null ? !clientId.equals(that.clientId) : that.clientId != null) return false;
-        if (orderDate != null ? !orderDate.equals(that.orderDate) : that.orderDate != null) return false;
-        if (totalAmount != null ? !totalAmount.equals(that.totalAmount) : that.totalAmount != null) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = orderId;
-        result = 31 * result + (clientId != null ? clientId.hashCode() : 0);
-        result = 31 * result + (orderDate != null ? orderDate.hashCode() : 0);
-        result = 31 * result + (totalAmount != null ? totalAmount.hashCode() : 0);
-        return result;
     }
 
     public Client getClientByClientId() {
@@ -100,5 +93,26 @@ public class ClientOrder {
 
     public void setOrderItemsByOrderId(Collection<OrderItem> orderItemsByOrderId) {
         this.orderItemsByOrderId = orderItemsByOrderId;
+    }
+
+    public void ajouterOrderItem(OrderItem tempOrderItem) {
+        if (this.orderItemsByOrderId == null) {
+            orderItemsByOrderId = new ArrayList<>();
+            this.totalAmount = 0;
+        }
+        //faire le lien avec le client
+        tempOrderItem.setClientOrderByOrderId(this);
+        //on ajoute a la liste
+        this.orderItemsByOrderId.add(tempOrderItem);
+        //mettre a jour le total de la commande
+        this.totalAmount += (tempOrderItem.getPrice() * tempOrderItem.getQuantity());
+    }
+
+    public void enleverOrderItem(OrderItem tempOrderItem) {
+        //mettre a jour le total de la commande
+        this.totalAmount -= (tempOrderItem.getPrice() * tempOrderItem.getQuantity());
+        //on retire de la liste
+        this.orderItemsByOrderId.remove(tempOrderItem);
+
     }
 }

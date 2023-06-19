@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 @Entity
@@ -27,14 +28,27 @@ public class Client {
     private String address;
 
 
-    @OneToMany(mappedBy = "clientByClientId")
+    @OneToMany(mappedBy = "clientByClientId",//l'attribut dans la classe ClientOrder
+            fetch = FetchType.EAGER,//va chercher directement les clientorder
+            cascade = {CascadeType.DETACH, CascadeType.MERGE,
+                    CascadeType.PERSIST, CascadeType.REFRESH})
     private Collection<ClientOrder> clientOrdersByClientId;
-    @OneToMany(mappedBy = "clientByClientId")
-    private Collection<Payment> paymentsByClientId;
+    /*@OneToMany(mappedBy = "clientByClientId")
+    private Collection<Payment> paymentsByClientId;*/
     @OneToMany(mappedBy = "clientByClientId")
     private Collection<ShoppingCart> shoppingCartsByClientId;
     @OneToOne(mappedBy = "clientByClientId")
     private UserAuthentication userAuthenticationByClientId;
+
+    public Client() {
+    }
+
+    public Client(String firstName, String lastName, String email, String address) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.address = address;
+    }
 
     public int getClientId() {
         return clientId;
@@ -76,32 +90,6 @@ public class Client {
         this.address = address;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Client client = (Client) o;
-
-        if (clientId != client.clientId) return false;
-        if (firstName != null ? !firstName.equals(client.firstName) : client.firstName != null) return false;
-        if (lastName != null ? !lastName.equals(client.lastName) : client.lastName != null) return false;
-        if (email != null ? !email.equals(client.email) : client.email != null) return false;
-        if (address != null ? !address.equals(client.address) : client.address != null) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = clientId;
-        result = 31 * result + (firstName != null ? firstName.hashCode() : 0);
-        result = 31 * result + (lastName != null ? lastName.hashCode() : 0);
-        result = 31 * result + (email != null ? email.hashCode() : 0);
-        result = 31 * result + (address != null ? address.hashCode() : 0);
-        return result;
-    }
-
     public Collection<ClientOrder> getClientOrdersByClientId() {
         return clientOrdersByClientId;
     }
@@ -110,13 +98,13 @@ public class Client {
         this.clientOrdersByClientId = clientOrdersByClientId;
     }
 
-    public Collection<Payment> getPaymentsByClientId() {
+    /*public Collection<Payment> getPaymentsByClientId() {
         return paymentsByClientId;
     }
 
     public void setPaymentsByClientId(Collection<Payment> paymentsByClientId) {
         this.paymentsByClientId = paymentsByClientId;
-    }
+    }*/
 
     public Collection<ShoppingCart> getShoppingCartsByClientId() {
         return shoppingCartsByClientId;
@@ -132,5 +120,24 @@ public class Client {
 
     public void setUserAuthenticationByClientId(UserAuthentication userAuthenticationByClientId) {
         this.userAuthenticationByClientId = userAuthenticationByClientId;
+    }
+
+    /**
+     * Ajouter un ClientOrder au client
+     * @param tempClientOrder
+     */
+    public void ajouterClientOrder(ClientOrder tempClientOrder) {
+        if (this.clientOrdersByClientId == null) {
+            clientOrdersByClientId = new ArrayList<>();
+
+        }
+        //faire le lien avec le client
+        tempClientOrder.setClientByClientId(this);
+        //on ajoute a la liste
+        this.clientOrdersByClientId.add(tempClientOrder);
+    }
+
+    public void enleverClientOrder(ClientOrder tempClientOrder) {
+        this.clientOrdersByClientId.remove(tempClientOrder);
     }
 }
